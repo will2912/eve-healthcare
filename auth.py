@@ -1,7 +1,17 @@
 import jwt
+import os
 from fastapi import Request, HTTPException
 from datetime import datetime, timedelta, timezone
-secret = "catisgood-this-is-a-longer-secret-key-123456"
+# secret = "catisgood-this-is-a-longer-secret-key-123456"
+secret= os.getenv("JWT_SECRET_KEY")
+from dotenv import load_dotenv
+from pwdlib import PasswordHash
+load_dotenv()
+
+password_hash = PasswordHash.recommended()
+
+def hash_password(password: str):
+    return password_hash.hash(password)
 
 def create_token(userId:int):
     payload={

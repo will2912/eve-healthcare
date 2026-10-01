@@ -1,33 +1,11 @@
-from fastapi import FastAPI,Request,Depends
-from auth import create_token , verifyToken
+from fastapi import FastAPI,Request,Depends, HTTPException
+from auth import create_token , verifyToken ,hash_password
 
-import os
-from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.orm import DeclarativeBase,sessionmaker
-load_dotenv()
+from model import User
+from schema.schema import UserSignup, UserOut
 
-db_url = os.getenv("DATABASE_URL")
-engine = create_engine(db_url)
-
-SessionLocal = sessionmaker(
-    bind=engine,
-    autoflush=False,
-    autocommit=False
-)
-
-class Base(DeclarativeBase):
-    pass
-
-
-def get_db():
-    db = SessionLocal()
-
-    try:
-        yield db
-    finally:
-        db.close()
-
+from sqlalchemy.orm import Session
+from database import get_db
 app = FastAPI()
 
 @app.get('/')
@@ -50,4 +28,6 @@ async def listing(authenticated=Depends(verifyToken)):
         "message":"success"
     }
 
-
+@app.get("/test")
+def testdb(db:Session=Depends(get_db)):
+    return {"message":"db recieved"}
