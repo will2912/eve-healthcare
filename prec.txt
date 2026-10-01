@@ -1,0 +1,13 @@
+auth - req.headers.get("autherization)
+auth= req.headers.get("autherization)
+if not auth :
+    raise HTTPException{
+        status:201,
+        detail:'token missing"
+    }
+
+if not auth:
+  raise(
+    status,
+    detail
+  )
