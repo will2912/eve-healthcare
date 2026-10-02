@@ -3,10 +3,11 @@ import os
 from fastapi import Request, HTTPException
 from datetime import datetime, timedelta, timezone
 # secret = "catisgood-this-is-a-longer-secret-key-123456"
-secret= os.getenv("JWT_SECRET_KEY")
+
 from dotenv import load_dotenv
 from pwdlib import PasswordHash
 load_dotenv()
+secret= os.getenv("JWT_SECRET_KEY")
 
 password_hash = PasswordHash.recommended()
 
@@ -29,9 +30,9 @@ def verifyToken(req:Request):
     auth = req.headers.get("Authorization")
     if not auth:
         raise HTTPException(
-            status=401,
-            detail="no auth"
-        )
+        status_code=401,
+        detail="no auth"
+    )
     token = auth.split(" ")[1]
 
     try:

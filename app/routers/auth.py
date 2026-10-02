@@ -33,7 +33,7 @@ async def login(req:Request , db:Session = Depends(get_db)):
         )
 
     token= create_token(existing_user.id)
-    print("token: ",token)
+    
     return Token(access_token=token)
 
 @router.post("/signup",response_model=UserOut,status_code=201)
