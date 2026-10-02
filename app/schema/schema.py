@@ -50,6 +50,11 @@ class TestOut(ORMModel):
     name: str
     description: str | None = None
 
+class TestSearchOut(BaseModel):
+    id: int
+    name: str
+    description: str | None = None
+
 
 # ---------------------------------------------------------------------------
 # 3. Diagnostic centres
@@ -58,6 +63,10 @@ class CentreCreate(BaseModel):                    # POST /centres/   (admin)
     name: str = Field(min_length=1, max_length=150)
     address: str = Field(min_length=1, max_length=255)
     city: str = Field(min_length=1, max_length=80)
+
+class CentreForTestOut(ORMModel):
+    centre: CentreOut
+    price: Decimal
 
 
 class CentreOut(ORMModel):                        # used in list responses

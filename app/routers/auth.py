@@ -32,7 +32,7 @@ async def login(req:Request , db:Session = Depends(get_db)):
             detail="Invalid email or password"
         )
 
-    token= create_token(user.email)
+    token= create_token(existing_user.id)
     print("token: ",token)
     return Token(access_token=token)
 
