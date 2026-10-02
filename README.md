@@ -20,6 +20,7 @@ LabBooker is a FastAPI backend for diagnostic test booking. It provides user aut
 * Alembic database migrations
 * Automated API tests
 * FastAPI Swagger/OpenAPI documentation
+* Docker and Docker Compose support
 
 ## Tech Stack
 
@@ -32,6 +33,8 @@ LabBooker is a FastAPI backend for diagnostic test booking. It provides user aut
 * JWT
 * Argon2 password hashing
 * Pytest
+* Docker
+* Docker Compose
 
 ## Project Structure
 
@@ -64,6 +67,8 @@ LabBooker/
 ├── .env
 ├── .gitignore
 ├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
 └── README.md
 ```
 
@@ -84,7 +89,7 @@ python -m venv .venv
 
 Activate it on Windows:
 
-```bash
+```powershell
 .venv\Scripts\activate
 ```
 
@@ -134,6 +139,44 @@ Interactive Swagger API documentation:
 ```text
 http://127.0.0.1:8000/docs
 ```
+
+## Docker
+
+Docker Compose can be used to run both the FastAPI application and PostgreSQL database without installing Python dependencies or PostgreSQL locally.
+
+### 1. Start the application
+
+Make sure Docker Desktop is running.
+
+```bash
+docker compose up --build -d
+```
+
+### 2. Run database migrations
+
+```bash
+docker compose exec app alembic upgrade head
+```
+
+### 3. Access the API
+
+```text
+http://127.0.0.1:8000
+```
+
+Swagger documentation:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+### 4. Stop the application
+
+```bash
+docker compose down
+```
+
+The PostgreSQL data is stored in the Docker Compose volume and persists across container restarts.
 
 ## API Endpoints
 
@@ -474,7 +517,6 @@ The following could be added in a production system:
 * Pagination
 * Refresh tokens
 * Payment retry handling
-* Docker and Docker Compose deployment
 
 ## API Documentation
 
