@@ -60,9 +60,6 @@ class CentreCreate(BaseModel):                    # POST /centres/   (admin)
     address: str = Field(min_length=1, max_length=255)
     city: str = Field(min_length=1, max_length=80)
 
-class CentreForTestOut(ORMModel):
-    centre: CentreOut
-    price: Decimal
 
 
 class CentreOut(ORMModel):                        # used in list responses
@@ -71,6 +68,10 @@ class CentreOut(ORMModel):                        # used in list responses
     address: str
     city: str
     is_active: bool
+
+class CentreForTestOut(ORMModel):
+    centre: CentreOut
+    price: Decimal
 
 
 class CentreTestCreate(BaseModel):                # POST /centres/{centre_id}/tests   (admin)
