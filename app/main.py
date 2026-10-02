@@ -1,6 +1,6 @@
 from fastapi import FastAPI,Request,Depends, HTTPException
 from security import create_token , verifyToken ,hash_password
-from routers import auth , booking
+from routers import auth , booking, payment
 app = FastAPI()
 
 @app.get('/')
@@ -9,6 +9,7 @@ def home():
 
 app.include_router(auth.router)
 app.include_router(booking.router)
+app.include_router(payment.router)
 
 
 @app.get('/list')
