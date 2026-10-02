@@ -1,44 +1,62 @@
-import jwt
-import os
-from fastapi import Request, HTTPException
-from datetime import datetime, timedelta, timezone
-# secret = "catisgood-this-is-a-longer-secret-key-123456"
-secret= os.getenv("JWT_SECRET_KEY")
-from dotenv import load_dotenv
-from pwdlib import PasswordHash
-load_dotenv()
+from fastapi import FastAPI,APIRouter, Request,Depends, HTTPException
+from security import create_token , verifyToken ,hash_password, verify_password
 
-password_hash = PasswordHash.recommended()
+from  model import User
+from schema.schema import UserSignup, UserOut, UserLogin, Token
 
-def hash_password(password: str):
-    return password_hash.hash(password)
+from sqlalchemy.orm import Session
+from database import get_db
 
-def create_token(userId:int):
-    payload={
-        "user_id":userId,
-        "exp": datetime.now(timezone.utc) + timedelta(minutes=30)
-    }
+router = APIRouter(prefix="/auth", tags=["Auth"])
 
-    encoded = jwt.encode(payload, secret, algorithm="HS256")
-    return encoded
+@router.post('/login',response_model=Token)
+async def login(req:Request , db:Session = Depends(get_db)):
 
-def verifyToken(req:Request):
-    auth = req.headers.get("Authorization")
-    if not auth:
+    body = await req.json()
+    print(body)
+    user = UserLogin.model_validate(body)
+    existing_user = db.query(User).filter(
+        User.email == user.email,
+    ).first()
+    if not existing_user:
         raise HTTPException(
-            status=401,
-            detail="no auth"
+            status_code=401,
+            detail = "user not found"
         )
-    token = auth.split(" ")[1]
+    if not verify_password(
+        user.password,
+        existing_user.password_hash
+    ):
+         raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
 
-    try:
-        decoded=jwt.decode(token, secret, algorithms=["HS256"])
-        return decoded
+    token= create_token(user.email)
+    print("token: ",token)
+    return Token(access_token=token)
+
+@router.post("/signup",response_model=UserOut,status_code=201)
+async def signup(req:Request,db:Session=Depends(get_db)):
+    body=await req.json()
+    user= UserSignup.model_validate(body)
+    existing_user = db.query(User).filter(
+        User.email==user.email
+    ).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=409,
+            detail="existing user"
+        )
+    hashed_password=hash_password(user.password)
+    newUser = User(
+        email=user.email,
+        password_hash=hashed_password,
+        full_name=user.full_name
+    )
+    db.add(newUser)
+    db.commit()
+    db.refresh(newUser)
+
+    return newUser
     
-    except jwt.InvalidTokenError:
-        raise HTTPException(
-             status_code=401,
-            detail="token error"
-        )
-
-
