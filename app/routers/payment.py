@@ -4,8 +4,8 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from model import Booking, Payment ,BOOKING_PENDING, BOOKING_FAILED, BOOKING_CONFIRMED
-from schema.schema import PaymentCreate, PaymentResult
+from model import Booking, Payment ,BOOKING_PENDING, BOOKING_FAILED, BOOKING_CONFIRMED ,WebhookEvent
+from schema.schema import PaymentCreate, PaymentResult, WebhookResponse, WebhookPayload
 from database import get_db
 from security import verifyToken
 
@@ -65,4 +65,55 @@ async def createPayment(data: PaymentCreate,req: Request,db: Session = Depends(g
     return PaymentResult(
         payment=payment,
         booking=booking
+    )
+
+
+
+
+@router.post("/payments/webhook/", response_model=WebhookResponse)
+async def paymentWebhook(
+    data: WebhookPayload,
+    db: Session = Depends(get_db)
+):
+    existing_event = db.query(WebhookEvent).filter(
+        WebhookEvent.event_id == data.event_id
+    ).first()
+
+    if existing_event:
+        return WebhookResponse(
+            result="duplicate",
+            message="Webhook event already processed"
+        )
+
+    payment = db.query(Payment).filter(
+        Payment.provider_reference == data.provider_reference
+    ).first()
+
+    if not payment:
+        raise HTTPException(
+            status_code=404,
+            detail="Payment not found"
+        )
+
+    webhook_event = WebhookEvent(
+        event_id=data.event_id,
+        payload=data.model_dump()
+    )
+
+    db.add(webhook_event)
+
+    payment.status = data.status
+
+    booking = payment.booking
+
+    if data.status == "SUCCESS":
+        booking.status = BOOKING_CONFIRMED
+    else:
+        booking.status = BOOKING_FAILED
+
+    db.commit()
+
+    return WebhookResponse(
+        result="processed",
+        message="Webhook processed successfully"
     )
